@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns='uri:oozie:workflow:0.4' name='sqoop-workflow'>
+    <start to='sqoop-load' />
+    
+    <action name="sqoop-load">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+	<command>import --connect jdbc:mysql://localhost:3306/mysql --username cloudera --password cloudera --split-by help_topic_id --table help_topic --target-dir /user/cloudera/sqoop/oozie-import -m 1</command>
+        </sqoop>
+        <ok to="end"/>
+        <error to="sqoop-load-fail"/>
+    </action>
+    <kill name="sqoop-load-fail">
+        <message>Sqoop export failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+  
+    <end name='end' />
+</workflow-app>
